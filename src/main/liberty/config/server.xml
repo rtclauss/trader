@@ -22,7 +22,15 @@
         <feature>transportSecurity-1.0</feature>
         <feature>openidConnectClient-1.0</feature> <!-- Needed by PropagationHelper utility -->
 <!--    <feature>logstashCollector-1.0</feature> -->
+        <!-- let's get some details on requests -->
+        <feature>mpMetrics-3.0</feature>
+        <feature>requestTiming-1.0</feature>
     </featureManager>
+
+    <!-- Disable auth for metrics -->
+    <mpMetrics authentication="false"/>
+
+    <monitor filter="ConnectionPool,ThreadPool,RequestTiming,Session,WebContainer,REST,GrpcClient,GrpcServer"/>
 
     <variable name="AUTH_TYPE"  defaultValue="basic"/>
     <variable name="TRACE_SPEC" defaultValue="*=info"/>
