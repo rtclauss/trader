@@ -1,1 +1,3 @@
 -Dcom.ibm.hybrid.cloud.sample.stocktrader.trader.client.BrokerClient/mp-rest/url=http://broker-service:9080/broker
+-Xdump:directory=/dumps
+-Xdump:heap:events=user
