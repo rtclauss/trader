@@ -22,6 +22,8 @@ import com.ibm.hybrid.cloud.sample.stocktrader.trader.json.Broker;
 import java.io.IOException;
 
 //JSR 47 Logging
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 //CDI 2.0
@@ -40,12 +42,14 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.RequestDispatcher;
 
 //mpConfig 1.3
+import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 //mpJWT 1.0
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 //mpRestClient 1.0
+import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 
@@ -55,6 +59,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @WebServlet(description = "Broker summary servlet", urlPatterns = { "/summary" })
 @ServletSecurity(@HttpConstraint(rolesAllowed = { "StockTrader", "StockViewer" } ))
 @ApplicationScoped
+@Traced
 public class Summary extends HttpServlet {
 	private static final long serialVersionUID = 4815162342L;
 	private static final String LOGOUT   = "Log Out";
@@ -70,14 +75,23 @@ public class Summary extends HttpServlet {
 	private @Inject JsonWebToken jwt;
 
 	//used in the liveness probe
-	public static boolean error = false;
+	private boolean error = false;
 	public static String message = null;
+
+	//new liveness probe 10/24/22
+	private static SynchronizedDescriptiveStatistics last1kCalls;
+	public static AtomicBoolean IS_FAILED = new AtomicBoolean(false);
+	private static final double FAILURE_THRESHOLD = 0.85;
 
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
 	public Summary() {
 		super();
+
+		if(last1kCalls==null){
+			last1kCalls = new SynchronizedDescriptiveStatistics(1000);
+		}
 
 		if (utilities == null) utilities = new Utilities(logger);
 	}
@@ -96,16 +110,31 @@ public class Summary extends HttpServlet {
 
 		try {
 //			JsonArray portfolios = PortfolioServices.getPortfolios(request);
-			Broker[] brokers = testMode ? getHardcodedBrokers() : brokerClient.getBrokers("Bearer "+utilities.getJWT(jwt));
+			//TODO make this better.
+			// This is the old version that returns all brokers. Performance dip when you hit 400 brokers.
+			// Broker[] brokers = testMode ? getHardcodedBrokers() : brokerClient.getBrokers("Bearer "+utilities.getJWT(jwt));
+			Broker[] brokers = testMode ? getHardcodedBrokers() : brokerClient.getBrokersPagination("Bearer "+utilities.getJWT(jwt),1, 5);
 
 			// set brokers for JSP
 			request.setAttribute("brokers", brokers);
+			last1kCalls.addValue(1.0);
 		} catch (Throwable t) {
 			utilities.logException(t);
 			message = t.getMessage();
 			error = true;
 			request.setAttribute("message", message);
 			request.setAttribute("error", error);
+			last1kCalls.addValue(0.0);
+		} finally {
+			var mean = last1kCalls.getMean();
+			logger.finest("Is failing calc mean: "+ mean);
+			if (mean < FAILURE_THRESHOLD){
+				logger.warning("Trader is failing liveness threshold: " + mean + " < " + FAILURE_THRESHOLD);
+				IS_FAILED.set(true);
+			}else {
+				IS_FAILED.set(false);
+			}
+
 		}
 
 		RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/WEB-INF/jsps/summary.jsp");

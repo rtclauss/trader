@@ -20,6 +20,8 @@ import com.ibm.hybrid.cloud.sample.stocktrader.trader.Summary;
 import com.ibm.hybrid.cloud.sample.stocktrader.trader.Utilities;
 
 //Logging (JSR 47)
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.util.logging.Logger;
 
 //CDI 2.0
@@ -54,7 +56,7 @@ public class LivenessProbe implements HealthCheck {
 		try {
 			HealthCheckResponseBuilder builder = HealthCheckResponse.named("Trader");
 
-			if (Summary.error) { //can't run without these env vars
+			if (Summary.IS_FAILED.get()) { //can't run without these env vars
 				builder = builder.down();
 				message = Summary.message;
 				logger.warning("Returning NOT live!");
@@ -64,6 +66,13 @@ public class LivenessProbe implements HealthCheck {
 			}
 
 			builder = builder.withData("message", message);
+
+			MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+			long memUsed = memoryBean.getHeapMemoryUsage().getUsed();
+			long memMax = memoryBean.getHeapMemoryUsage().getMax();
+			builder.withData("memUsed", memUsed)
+					.withData("memMax", memMax)
+					.status(memUsed < memMax * 0.9);
 
 			response = builder.build(); 
 		} catch (Throwable t) {

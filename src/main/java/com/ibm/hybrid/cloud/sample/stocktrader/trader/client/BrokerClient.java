@@ -46,6 +46,11 @@ public interface BrokerClient {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Broker[] getBrokers(@HeaderParam("Authorization") String jwt);
 
+	@GET
+	@Path("/{page}/{pageSize}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Broker[] getBrokersPagination(@HeaderParam("Authorization") String jwt, @PathParam("page") Integer page, @PathParam("pageSize") Integer pageSize);
+
 	@POST
 	@Path("/{owner}")
 	@Produces(MediaType.APPLICATION_JSON)
