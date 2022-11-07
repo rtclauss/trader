@@ -16,6 +16,8 @@
 
 package com.ibm.hybrid.cloud.sample.stocktrader.trader;
 
+import org.eclipse.microprofile.opentracing.Traced;
+
 import java.io.IOException;
 import java.io.Writer;
 
@@ -31,6 +33,7 @@ import javax.servlet.RequestDispatcher;
  * Servlet implementation class Error
  */
 @WebServlet(description = "Error servlet", urlPatterns = { "/error" })
+@Traced
 public class Error extends HttpServlet {
 	private static final long serialVersionUID = 4815162342L;
 	/**

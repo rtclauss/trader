@@ -42,6 +42,7 @@ import javax.servlet.RequestDispatcher;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 //mpRestClient 1.0
+import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 /**
@@ -50,6 +51,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @WebServlet(description = "Add Stock servlet", urlPatterns = { "/addStock" })
 @ServletSecurity(@HttpConstraint(rolesAllowed = { "StockTrader" } ))
 @ApplicationScoped
+@Traced
 public class AddStock extends HttpServlet {
 	private static final long serialVersionUID = 4815162342L;
 	private static final String SELL = "Sell";
@@ -122,12 +124,12 @@ public class AddStock extends HttpServlet {
 	private String getCommission(HttpServletRequest request, String owner) {
 		String formattedCommission = "<b>Free!</b>";
 		try {
-			logger.info("Getting commission");
+			logger.finest("Getting commission");
 			//JsonObject portfolio = PortfolioServices.getPortfolio(request, owner);
 			Broker broker = brokerClient.getBroker("Bearer "+utilities.getJWT(jwt), owner);
 			double commission = broker.getNextCommission();
 			if (commission!=0.0) formattedCommission = "$"+currency.format(commission);
-			logger.info("Got commission: "+formattedCommission);
+			logger.finest("Got commission: "+formattedCommission);
 		} catch (Throwable t) {
 			utilities.logException(t);
 		}

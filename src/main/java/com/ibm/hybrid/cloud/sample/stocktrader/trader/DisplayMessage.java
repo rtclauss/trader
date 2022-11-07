@@ -16,6 +16,8 @@
 
 package com.ibm.hybrid.cloud.sample.stocktrader.trader;
 
+import org.eclipse.microprofile.opentracing.Traced;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URLDecoder;
@@ -36,6 +38,7 @@ import javax.servlet.RequestDispatcher;
  */
 @WebServlet(description = "Display Message servlet", urlPatterns = { "/message" })
 @ServletSecurity(@HttpConstraint(rolesAllowed = { "StockTrader" } ))
+@Traced
 public class DisplayMessage extends HttpServlet {
 	private static final long serialVersionUID = 4815162342L;
 	private static Logger logger = Logger.getLogger(DisplayMessage.class.getName());
@@ -60,10 +63,10 @@ public class DisplayMessage extends HttpServlet {
 		String owner = request.getParameter("owner");
 
 		if ((owner==null) || owner.equals("")) {
-			logger.info("Redirecting to summary servlet");
+			logger.finest("Redirecting to summary servlet");
 			response.sendRedirect("summary"); //send control to the Summary servlet
 		} else {
-			logger.info("Redirecting to viewPortfolio servlet");
+			logger.finest("Redirecting to viewPortfolio servlet");
 			response.sendRedirect("viewPortfolio?owner="+owner); //send control to the ViewPortfolio servlet
 		}
 	}

@@ -46,6 +46,7 @@ import javax.servlet.RequestDispatcher;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 //mpRestClient 1.0
+import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 
@@ -55,6 +56,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @WebServlet(description = "View Portfolio servlet", urlPatterns = { "/viewPortfolio" })
 @ServletSecurity(@HttpConstraint(rolesAllowed = { "StockTrader", "StockViewer" } ))
 @ApplicationScoped
+@Traced
 public class ViewPortfolio extends HttpServlet {
 	private static final long serialVersionUID = 4815162342L;
 	private static final double ERROR = -1;

@@ -39,6 +39,7 @@ import javax.servlet.RequestDispatcher;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 //mpRestClient 1.0
+import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 /**
@@ -47,6 +48,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @WebServlet(description = "Add Portfolio servlet", urlPatterns = { "/addPortfolio" })
 @ServletSecurity(@HttpConstraint(rolesAllowed = { "StockTrader" } ))
 @ApplicationScoped
+@Traced
 public class AddPortfolio extends HttpServlet {
 	private static final long serialVersionUID = 4815162342L;
 	private static Logger logger = Logger.getLogger(AddPortfolio.class.getName());
@@ -80,7 +82,7 @@ public class AddPortfolio extends HttpServlet {
 		String owner = request.getParameter("owner");
 
 		if ((owner!=null) && !owner.equals("")) try {
-			logger.info("Redirecting to Summary servlet.");
+			logger.finest("Redirecting to Summary servlet.");
 
 			//PortfolioServices.createPortfolio(request, owner);
 			brokerClient.createBroker("Bearer "+utilities.getJWT(jwt), owner);

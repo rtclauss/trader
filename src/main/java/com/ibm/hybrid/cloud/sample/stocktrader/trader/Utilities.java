@@ -38,8 +38,9 @@ import java.util.logging.Logger;
 
 //mpJWT 1.0
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.opentracing.Traced;
 
-
+@Traced
 public class Utilities {
 	private static Logger logger = Logger.getLogger(Utilities.class.getName());
 

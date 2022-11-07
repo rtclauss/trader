@@ -16,6 +16,8 @@
 
 package com.ibm.hybrid.cloud.sample.stocktrader.trader;
 
+import org.eclipse.microprofile.opentracing.Traced;
+
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -33,6 +35,7 @@ import javax.servlet.RequestDispatcher;
  * Servlet implementation class Login
  */
 @WebServlet(description = "Login servlet", urlPatterns = { "/login" })
+@Traced
 public class Login extends HttpServlet {
 	private static final long serialVersionUID = 4815162342L;
 	private static Logger logger = Logger.getLogger(Login.class.getName());
@@ -72,7 +75,7 @@ public class Login extends HttpServlet {
 			response.addCookie(cookie);
 
 			success = true;
-			logger.info("Successfully logged in user: "+id);
+			logger.finest("Successfully logged in user: "+id);
 		} catch (Throwable t) {
 			utilities.logException(t);
 		}
